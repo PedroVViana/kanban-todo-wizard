@@ -1,10 +1,10 @@
-
 import { useRef, useState } from "react";
 import { TaskStatus, Task, useTaskStore } from "@/store/useTaskStore";
 import { TaskCard } from "./TaskCard";
-import { Plus } from "lucide-react";
+import { Plus, CheckCircle, Circle, CircleCheck, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface KanbanColumnProps {
   title: string;
@@ -12,6 +12,8 @@ interface KanbanColumnProps {
   tasks: Task[];
   onAddTask: () => void;
   onEditTask: (task: Task) => void;
+  color?: string;
+  icon?: string;
 }
 
 const statusColors: Record<TaskStatus, string> = {
@@ -31,7 +33,9 @@ export function KanbanColumn({
   status, 
   tasks, 
   onAddTask, 
-  onEditTask 
+  onEditTask,
+  color,
+  icon = "circle"
 }: KanbanColumnProps) {
   const [isOver, setIsOver] = useState(false);
   const moveTask = useTaskStore((state) => state.moveTask);
@@ -61,19 +65,38 @@ export function KanbanColumn({
     }
   };
   
+  const renderIcon = () => {
+    switch (icon) {
+      case "circle-check":
+        return <CircleCheck size={16} className="text-blue-500" />;
+      case "circle-half":
+        return <CircleDot size={16} className="text-amber-500" />;
+      case "check-circle":
+        return <CheckCircle size={16} className="text-green-500" />;
+      default:
+        return <Circle size={16} />;
+    }
+  };
+  
   return (
     <div 
       ref={columnRef}
-      className={`kanban-column p-4 rounded-xl border ${statusBorderColors[status]} ${statusColors[status]} 
-      ${isOver ? "ring-2 ring-primary/20" : ""} transition-all duration-200`}
+      className={cn(
+        "kanban-column p-4 rounded-xl border transition-all duration-200",
+        color || `${statusBorderColors[status]} ${statusColors[status]}`,
+        isOver ? "ring-2 ring-primary/20" : ""
+      )}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium text-sm">
-          {title} <span className="ml-2 text-muted-foreground">({tasks.length})</span>
-        </h3>
+        <div className="flex items-center gap-2">
+          {renderIcon()}
+          <h3 className="font-medium text-sm">
+            {title} <span className="ml-2 text-muted-foreground">({tasks.length})</span>
+          </h3>
+        </div>
         <Button 
           size="sm" 
           variant="ghost" 
@@ -85,7 +108,7 @@ export function KanbanColumn({
         </Button>
       </div>
       
-      <Separator className="mb-4 bg-black/5" />
+      <Separator className="mb-4 bg-black/5 dark:bg-white/5" />
       
       <div className="space-y-2 overflow-y-auto overflow-x-hidden max-h-[calc(100vh-14rem)] p-0.5">
         {tasks.map((task) => (
@@ -96,8 +119,8 @@ export function KanbanColumn({
         
         {tasks.length === 0 && (
           <div className="py-8 px-2 flex flex-col items-center text-center">
-            <p className="text-muted-foreground text-sm">No tasks yet</p>
-            <p className="text-xs text-muted-foreground mt-1">Drag tasks here or add a new one</p>
+            <p className="text-muted-foreground text-sm">Sem tarefas</p>
+            <p className="text-xs text-muted-foreground mt-1">Arraste tarefas aqui ou adicione uma nova</p>
           </div>
         )}
       </div>
